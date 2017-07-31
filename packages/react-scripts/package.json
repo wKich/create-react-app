@@ -1,8 +1,8 @@
 {
-  "name": "react-scripts",
+  "name": "skbkontur-react-scripts",
   "version": "1.0.11",
   "description": "Configuration and scripts for Create React App.",
-  "repository": "facebookincubator/create-react-app",
+  "repository": "wKich/create-react-app",
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">=6"
@@ -21,6 +21,8 @@
     "react-scripts": "./bin/react-scripts.js"
   },
   "dependencies": {
+    "@skbkontur/react-ui": "0.8.6",
+    "@types/react": "^15.5.4",
     "autoprefixer": "7.1.2",
     "babel-core": "6.25.0",
     "babel-eslint": "7.2.3",
@@ -48,6 +50,7 @@
     "postcss-flexbugs-fixes": "3.2.0",
     "postcss-loader": "2.0.6",
     "promise": "8.0.1",
+    "react-addons-css-transition-group": "^15.5.4",
     "react-dev-utils": "^3.1.0",
     "react-error-overlay": "^1.0.10",
     "style-loader": "0.18.2",
