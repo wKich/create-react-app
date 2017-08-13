@@ -21,7 +21,7 @@
     "react-scripts": "./bin/react-scripts.js"
   },
   "dependencies": {
-    "@skbkontur/react-ui": "0.8.6",
+    "@skbkontur/react-ui": "^0.8.10",
     "@types/react": "^15.5.4",
     "autoprefixer": "7.1.2",
     "babel-core": "6.25.0",
