@@ -21,6 +21,9 @@ const eslintFormatter = require('react-dev-utils/eslintFormatter');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getClientEnvironment = require('./env');
 const paths = require('./paths');
+const styleLoader = require('./custom/style-loader');
+
+const isDev = true;
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
@@ -110,6 +113,7 @@ module.exports = {
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
       'react-native': 'react-native-web',
+      'ui': 'retail-ui/components',
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).
@@ -174,51 +178,35 @@ module.exports = {
             options: {
               // @remove-on-eject-begin
               babelrc: false,
-              presets: [require.resolve('babel-preset-react-app')],
               // @remove-on-eject-end
+              presets: [require.resolve('babel-preset-react-app'), require.resolve('babel-preset-stage-2')],
+              plugins: [require.resolve('babel-plugin-transform-decorators-legacy')],
               // This is a feature of `babel-loader` for webpack (not Babel itself).
               // It enables caching results in ./node_modules/.cache/babel-loader/
               // directory for faster rebuilds.
               cacheDirectory: true,
             },
           },
+          // For Retail UI
+          {
+            test: /\.jsx?$/,
+            loader: require.resolve('babel-loader'),
+            query: {
+              presets: ['es2015', 'stage-0', 'react'],
+              plugins: [
+                require.resolve('retail-ui/scripts/babel/component-imports.js'), // import {Link} from 'ui'
+              ],
+            },
+            include: /retail-ui/,
+          },
+          // The notation here is somewhat confusing.
           // "postcss" loader applies autoprefixer to our CSS.
           // "css" loader resolves paths in CSS and adds assets as dependencies.
-          // "style" loader turns CSS into JS modules that inject <style> tags.
-          // In production, we use a plugin to extract that CSS to a file, but
-          // in development "style" loader enables hot editing of CSS.
-          {
-            test: /\.css$/,
-            use: [
-              require.resolve('style-loader'),
-              {
-                loader: require.resolve('css-loader'),
-                options: {
-                  importLoaders: 1,
-                },
-              },
-              {
-                loader: require.resolve('postcss-loader'),
-                options: {
-                  // Necessary for external CSS imports to work
-                  // https://github.com/facebookincubator/create-react-app/issues/2677
-                  ident: 'postcss',
-                  plugins: () => [
-                    require('postcss-flexbugs-fixes'),
-                    autoprefixer({
-                      browsers: [
-                        '>1%',
-                        'last 4 versions',
-                        'Firefox ESR',
-                        'not ie < 9', // React doesn't support IE8 anyway
-                      ],
-                      flexbox: 'no-2009',
-                    }),
-                  ],
-                },
-              },
-            ],
-          },
+          // "style" loader normally turns CSS into JS modules injecting <style>,
+          // but unlike in development configuration, we do something different.
+          styleLoader(undefined, /\.css$/, /\.module\.css$/)(isDev),
+          styleLoader(require.resolve('less-loader'), /\.less$/, /\.module\.less$/)(isDev),
+          styleLoader(require.resolve('less-loader'), /\.module\.less$/, undefined, true)(isDev),
           // "file" loader makes sure those assets get served by WebpackDevServer.
           // When you `import` an asset, you get its (virtual) filename.
           // In production, they would get copied to the `build` folder.
