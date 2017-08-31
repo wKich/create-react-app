@@ -22,6 +22,9 @@ const eslintFormatter = require('react-dev-utils/eslintFormatter');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const paths = require('./paths');
 const getClientEnvironment = require('./env');
+const styleLoader = require('./custom/style-loader');
+
+const isDev = false;
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
@@ -112,6 +115,7 @@ module.exports = {
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
       'react-native': 'react-native-web',
+      'ui': 'retail-ui/components',
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).
@@ -177,10 +181,23 @@ module.exports = {
             options: {
               // @remove-on-eject-begin
               babelrc: false,
-              presets: [require.resolve('babel-preset-react-app')],
               // @remove-on-eject-end
+              presets: [require.resolve('babel-preset-react-app'), require.resolve('babel-preset-stage-2')],
+              plugins: [require.resolve('babel-plugin-transform-decorators-legacy')],
               compact: true,
             },
+          },
+          // For Retail UI
+          {
+            test: /\.jsx?$/,
+            loader: require.resolve('babel-loader'),
+            query: {
+              presets: ['es2015', 'stage-0', 'react'],
+              plugins: [
+                require.resolve('retail-ui/scripts/babel/component-imports.js'), // import {Link} from 'ui'
+              ],
+            },
+            include: /retail-ui/,
           },
           // The notation here is somewhat confusing.
           // "postcss" loader applies autoprefixer to our CSS.
@@ -194,48 +211,9 @@ module.exports = {
           // tags. If you use code splitting, however, any async bundles will still
           // use the "style" loader inside the async code so CSS from them won't be
           // in the main CSS file.
-          {
-            test: /\.css$/,
-            loader: ExtractTextPlugin.extract(
-              Object.assign(
-                {
-                  fallback: require.resolve('style-loader'),
-                  use: [
-                    {
-                      loader: require.resolve('css-loader'),
-                      options: {
-                        importLoaders: 1,
-                        minimize: true,
-                        sourceMap: shouldUseSourceMap,
-                      },
-                    },
-                    {
-                      loader: require.resolve('postcss-loader'),
-                      options: {
-                        // Necessary for external CSS imports to work
-                        // https://github.com/facebookincubator/create-react-app/issues/2677
-                        ident: 'postcss',
-                        plugins: () => [
-                          require('postcss-flexbugs-fixes'),
-                          autoprefixer({
-                            browsers: [
-                              '>1%',
-                              'last 4 versions',
-                              'Firefox ESR',
-                              'not ie < 9', // React doesn't support IE8 anyway
-                            ],
-                            flexbox: 'no-2009',
-                          }),
-                        ],
-                      },
-                    },
-                  ],
-                },
-                extractTextPluginOptions
-              )
-            ),
-            // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
-          },
+          styleLoader(undefined, /\.css$/, /\.module\.css$/)(isDev),
+          styleLoader(require.resolve('less-loader'), /\.less$/, /\.module\.less$/)(isDev),
+          styleLoader(require.resolve('less-loader'), /\.module\.less$/, undefined, true)(isDev),
           // "file" loader makes sure assets end up in the `build` folder.
           // When you `import` an asset, you get its filename.
           // This loader don't uses a "test" so it will catch all modules
